@@ -1,0 +1,380 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mx:TitleWindow backgroundColor="#00014f97" close="{PopUpManager.removePopUp(this);}" creationComplete="{moveButton();init();}" height="330" layout="absolute" width="480" xmlns:mx="http://www.adobe.com/2006/mxml">
+	<mx:Script><![CDATA[
+        import flash.events.*;
+        import flash.utils.*;
+        import mx.binding.*;
+        import mx.collections.*;
+        import mx.containers.*;
+        import mx.controls.*;
+        import mx.core.*;
+        import mx.events.*;
+        import mx.managers.*;
+        import mx.rpc.events.*;
+        import mx.rpc.remoting.mxml.*;
+        import mx.styles.*;
+        import mx.validators.*;
+        import mx.events.*;
+
+        private var  validatorArr:Array;
+
+
+        public function _popupActivation_Operation2_c() : Operation
+        {
+            var _loc_1:* = new Operation();
+            _loc_1.name = "selectCities";
+            _loc_1.addEventListener("result", ___popupActivation_Operation2_result);
+            return _loc_1;
+        }// end function
+
+        public function _popupActivation_Operation6_c() : Operation
+        {
+            var _loc_1:* = new Operation();
+            _loc_1.name = "activate";
+            _loc_1.addEventListener("result", ___popupActivation_Operation6_result);
+            return _loc_1;
+        }// end function
+
+        public function ___popupActivation_Operation4_result(event:ResultEvent) : void
+        {
+            resultSelectRanges(event);
+            return;
+        }// end function
+
+        public function init() : void
+        {
+            varCount = 1;
+            roActivation.selectCountries();
+            roActivation.selectRanges();
+            roActivation.selectOccupancy();
+            return;
+        }// end function
+
+        public function resultSetActivate(event:ResultEvent) : void
+        {
+            if (event.result.toString() == "ActiveUser")
+            {
+                Alert.show("Este número ya esta activado");
+            }
+            else
+            {
+                Alert.show("PIN enviado");
+            }
+            return;
+        }// end function
+
+        public function resultSelectCities(event:ResultEvent) : void
+        {
+            cbDepartment.labelField = "ciudad";
+            cbDepartment.dataField = "ciudad";
+            cbDepartment.dataProvider = event.result as ArrayCollection;
+            if (varCount == 1)
+            {
+                (varCount + 1);
+                roActivation.selectUserENTEL(Application.application.intUserId);
+            }
+            else if (varCount == 2)
+            {
+                cbDepartment.selectedValue = varDepartment;
+            }
+            return;
+        }// end function
+
+        public function validateConfirmacion() : void
+        {
+            var _loc_3:ValidationResultEvent = null;
+            var _loc_4:Array = null;
+            validatorArr = new Array();
+            validatorArr.push(svtiPIN);
+            validatorArr.push(svtiMovil);
+            validatorArr.push(svtiAddress);
+            var _loc_1:* = Validator.validateAll(validatorArr);
+            var _loc_2:* = _loc_1.length == 0;
+            if (_loc_2)
+            {
+                roActivation.activate(Application.application.intUserId, cbCountry.selectedLabel, cbDepartment.selectedLabel, cbOccupancy.selectedLabel, tiAddress.text, int(cbMovil.selectedLabel + tiMovil.text), tiPIN.text);
+            }
+            else
+            {
+                _loc_4 = [];
+                for each (_loc_3 in _loc_1)
+                {
+                    
+                    _loc_4.push(_loc_3.message);
+                }
+                Alert.show(_loc_4.join("\n\n"), "registro invalido...", Alert.OK);
+            }
+            return;
+        }// end function
+
+        public function validateSolicitud() : void
+        {
+            var _loc_3:ValidationResultEvent = null;
+            var _loc_4:Array = null;
+            validatorArr = new Array();
+            validatorArr.push(svtiMovil);
+            validatorArr.push(svtiAddress);
+            var _loc_1:* = Validator.validateAll(validatorArr);
+            var _loc_2:* = _loc_1.length == 0;
+            if (_loc_2)
+            {
+                if (strStatusUser == "unactivated")
+                {
+                    roActivation.setActivate(Application.application.intUserId, cbCountry.selectedLabel, cbDepartment.selectedLabel, cbOccupancy.selectedLabel, tiAddress.text, int(cbMovil.selectedLabel + tiMovil.text));
+                }
+                else if (strStatusUser == "waiting")
+                {
+                    roActivation.setPin(Application.application.intUserId, int(cbMovil.selectedLabel + tiMovil.text));
+                }
+            }
+            else
+            {
+                _loc_4 = [];
+                for each (_loc_3 in _loc_1)
+                {
+                    
+                    _loc_4.push(_loc_3.message);
+                }
+                Alert.show(_loc_4.join("\n\n"), "registro invalido...", Alert.OK);
+            }
+            return;
+        }// end function
+
+        public function resultActivate(event:ResultEvent) : void
+        {
+            if (event.result.toString() == "ActiveUser")
+            {
+                Alert.show("Este número ya esta activado");
+            }
+            else if (event.result.toString() == "OK")
+            {
+                Application.application.btnActivation.visible = false;
+                Alert.show("Gracias por activar su móvil de entel");
+                PopUpManager.removePopUp(this);
+            }
+            else
+            {
+                Alert.show("PIN incorrecto, verifique en su móvil que le haya llegado el PIN que le enviamos");
+            }
+            return;
+        }// end function
+
+        public function ___popupActivation_Operation3_result(event:ResultEvent) : void
+        {
+            resultSelectOccupancy(event);
+            return;
+        }// end function
+
+        public function resultSelectUserENTEL(event:ResultEvent) : void
+        {
+            var _loc_3:String = null;
+            var _loc_2:* = event.result as ArrayCollection;
+            if (_loc_2.length > 0)
+            {
+                varCountry = _loc_2[0].country;
+                varDepartment = _loc_2[0].department;
+                cbCountry.selectedValue = _loc_2[0].country;
+                roActivation.selectCities(varCountry);
+                cbOccupancy.selectedValue = _loc_2[0].occupancy;
+                tiAddress.text = _loc_2[0].address;
+                _loc_3 = _loc_2[0].number;
+                cbMovil.selectedValue = _loc_3.substr(0, 3);
+                tiMovil.text = _loc_3.substr(3, 8);
+                strStatusUser = "waiting";
+            }
+            else
+            {
+                cbCountry.selectedIndex = 28;
+                roActivation.selectCities(cbCountry.selectedLabel);
+                strStatusUser = "unactivated";
+            }
+            return;
+        }// end function
+
+        public function resultSetPin(event:ResultEvent) : void
+        {
+            if (event.result.toString() == "ActiveUser")
+            {
+                Alert.show("Este número ya esta activado");
+            }
+            else
+            {
+                Alert.show("PIN enviado");
+            }
+            return;
+        }// end function
+
+        public function _popupActivation_Operation1_c() : Operation
+        {
+            var _loc_1:* = new Operation();
+            _loc_1.name = "selectCountries";
+            _loc_1.addEventListener("result", ___popupActivation_Operation1_result);
+            return _loc_1;
+        }// end function
+
+        public function resultSelectCountries(event:ResultEvent) : void
+        {
+            cbCountry.labelField = "pais";
+            cbCountry.dataField = "pais";
+            cbCountry.dataProvider = event.result as ArrayCollection;
+            roActivation.selectCities(cbCountry.selectedLabel);
+            return;
+        }// end function
+
+        public function ___popupActivation_Operation2_result(event:ResultEvent) : void
+        {
+            resultSelectCities(event);
+            return;
+        }// end function
+
+        public function _popupActivation_Operation5_c() : Operation
+        {
+            var _loc_1:* = new Operation();
+            _loc_1.name = "setActivate";
+            _loc_1.addEventListener("result", ___popupActivation_Operation5_result);
+            return _loc_1;
+        }// end function
+
+        public function moveButton() : void
+        {
+            mx_internal::closeButton.x = 445;
+            mx_internal::closeButton.y = 23;
+            return;
+        }// end function
+
+        public function ___popupActivation_Operation1_result(event:ResultEvent) : void
+        {
+            resultSelectCountries(event);
+            return;
+        }// end function
+
+        public function _popupActivation_Operation4_c() : Operation
+        {
+            var _loc_1:* = new Operation();
+            _loc_1.name = "selectRanges";
+            _loc_1.addEventListener("result", ___popupActivation_Operation4_result);
+            return _loc_1;
+        }// end function
+
+        public function _popupActivation_Operation8_c() : Operation
+        {
+            var _loc_1:* = new Operation();
+            _loc_1.name = "selectUserENTEL";
+            _loc_1.addEventListener("result", ___popupActivation_Operation8_result);
+            return _loc_1;
+        }// end function
+
+        public function ___popupActivation_Operation8_result(event:ResultEvent) : void
+        {
+            resultSelectUserENTEL(event);
+            return;
+        }// end function
+
+        public function ___popupActivation_Operation7_result(event:ResultEvent) : void
+        {
+            resultSetPin(event);
+            return;
+        }// end function
+
+        public function resultSelectRanges(event:ResultEvent) : void
+        {
+            cbMovil.labelField = "ranges";
+            cbMovil.dataField = "ranges";
+            cbMovil.dataProvider = event.result as ArrayCollection;
+            return;
+        }// end function
+
+        public function _popupActivation_Operation7_c() : Operation
+        {
+            var _loc_1:* = new Operation();
+            _loc_1.name = "setPin";
+            _loc_1.addEventListener("result", ___popupActivation_Operation7_result);
+            return _loc_1;
+        }// end function
+
+        public function ___popupActivation_Operation6_result(event:ResultEvent) : void
+        {
+            resultActivate(event);
+            return;
+        }// end function
+
+        public function resultSelectOccupancy(event:ResultEvent) : void
+        {
+            cbOccupancy.labelField = "occupancy";
+            cbOccupancy.dataField = "occupancy";
+            cbOccupancy.dataProvider = event.result as ArrayCollection;
+            return;
+        }// end function
+
+        public function _popupActivation_RemoteObject1_i() : RemoteObject
+        {
+            var _loc_1:* = new RemoteObject();
+            roActivation = _loc_1;
+            _loc_1.destination = "dSms";
+            _loc_1.source = "service.smsService";
+            _loc_1.showBusyCursor = true;
+            _loc_1.operations = {selectCountries:_popupActivation_Operation1_c(), selectCities:_popupActivation_Operation2_c(), selectOccupancy:_popupActivation_Operation3_c(), selectRanges:_popupActivation_Operation4_c(), setActivate:_popupActivation_Operation5_c(), activate:_popupActivation_Operation6_c(), setPin:_popupActivation_Operation7_c(), selectUserENTEL:_popupActivation_Operation8_c()};
+            _loc_1.addEventListener("fault", __roActivation_fault);
+            _loc_1.initialized(this, "roActivation");
+            return _loc_1;
+        }// end function
+
+        public function _popupActivation_Operation3_c() : Operation
+        {
+            var _loc_1:* = new Operation();
+            _loc_1.name = "selectOccupancy";
+            _loc_1.addEventListener("result", ___popupActivation_Operation3_result);
+            return _loc_1;
+        }// end function
+
+        public function ___popupActivation_Operation5_result(event:ResultEvent) : void
+        {
+            resultSetActivate(event);
+            return;
+        }// end function
+
+        public function __roActivation_fault(event:FaultEvent) : void
+        {
+            Alert.show(event.fault.faultString, "Error");
+            return;
+        }// end function
+    ]]></mx:Script>
+
+	<mx:StringValidator id="_popupActivation_StringValidator1" maxLength="5" minLength="5" property="text" requiredFieldError="Móvil: Información requerida" tooShortError="Móvil: Mínimo 5 dígitos"/>
+	<mx:StringValidator id="_popupActivation_StringValidator3" maxLength="5" minLength="1" property="text" requiredFieldError="PIN: Información requerida" tooShortError="PIN: Mínimo 5 dígitos"/>
+	<mx:StringValidator id="_popupActivation_StringValidator2" property="text" requiredFieldError="Dirección: Información requerida"/>
+	<mx:SWFLoader height="291" source="assets/fondo.swf" width="437" x="30.35" y="1"/>
+	<mx:FormItem height="22" id="fiCountry" width="272" x="142" y="28">
+		<mx:BFComboBox change="{roActivation.selectCities(cbCountry.selectedLabel);}" color="#00084a8c" fontSize="9" height="22" id="cbCountry" width="258"/>
+	</mx:FormItem>
+	<mx:FormItem height="22" id="fiDepartment" width="272" x="142" y="53">
+		<mx:BFComboBox color="#00084a8c" fontSize="9" id="cbDepartment" width="258"/>
+	</mx:FormItem>
+	<mx:FormItem height="22" id="fiOccupancy" width="272" x="142" y="78">
+		<mx:BFComboBox color="#00084a8c" fontSize="9" height="22" id="cbOccupancy" width="258"/>
+	</mx:FormItem>
+	<mx:FormItem height="33" id="fiAddress" width="272" x="142" y="106">
+		<mx:TextInput height="37.6667" id="tiAddress" maxChars="250" restrict="^áéíóúàèìòùÁÉÍÓÚÀÌÈÒÙ\\.\\-\\\'\\/#$%()=?¡¿\'\\,\\\"\\&amp;|°!\\&lt;&gt;;:_\\^¨*+{}[]\\`~" width="245"/>
+	</mx:FormItem>
+	<mx:HBox id="hbMovil" x="139" y="151">
+		<mx:FormItem id="fiMovil">
+			<mx:BFComboBox color="#00084a8c" fontSize="9" id="cbMovil" width="73"/>
+		</mx:FormItem>
+		<mx:FormItem height="25" id="fitiMovil" width="123.5">
+			<mx:TextInput id="tiMovil" maxChars="5" restrict="0-9" width="247"/>
+		</mx:FormItem>
+	</mx:HBox>
+	<mx:Button click="{validateSolicitud();}" color="#00084a8c" id="btnEnvioPIN" label="Enviar PIN" x="195" y="190"/>
+	<mx:FormItem id="fiPIN" x="289" y="191">
+		<mx:TextInput alpha="1" height="25" id="tiPIN" maxChars="5" restrict="0-9" width="100.333"/>
+	</mx:FormItem>
+	<mx:Button click="{validateConfirmacion();}" color="#00084a8c" height="20" label="Activar" x="195" y="247"/>
+	<mx:Label color="#00084a8c" fontWeight="bold" height="18" text="país:" width="35.6" x="115" y="31"/>
+	<mx:Label color="#00084a8c" fontWeight="bold" text="departamento:" textAlign="right" x="56" y="54"/>
+	<mx:Label color="#00084a8c" fontWeight="bold" height="18" text="ocupación:" width="72" x="81" y="80"/>
+	<mx:Label color="#00084a8c" fontWeight="bold" height="18" text="dirección:" width="67" x="86" y="103"/>
+	<mx:Label color="#00084a8c" fontWeight="bold" text="móvil:" x="103" y="155"/>
+	<mx:Label color="#00084a8c" fontWeight="normal" text="Introducir acá el PIN que se le" x="195" y="217"/>
+	<mx:Label color="#00084a8c" fontWeight="normal" text="envió a su móvil" x="219" y="229"/>
+
+</mx:TitleWindow>

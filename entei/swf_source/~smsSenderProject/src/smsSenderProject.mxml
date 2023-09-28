@@ -1,0 +1,974 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mx:Application creationComplete="{intUserId = int(Application.application.parameters.userId);init();roSmsService.selectRanges();sw = 0;roSmsService.countMessages(intUserId);}" height="600" layout="absolute" width="232" xmlns:mx="http://www.adobe.com/2006/mxml">
+	<mx:Script><![CDATA[
+        import com.*;
+        import flash.events.*;
+        import flash.net.*;
+        import flash.utils.*;
+        import mx.binding.*;
+        import mx.collections.*;
+        import mx.containers.*;
+        import mx.controls.*;
+        import mx.controls.dataGridClasses.*;
+        import mx.core.*;
+        import mx.events.*;
+        import mx.managers.*;
+        import mx.rpc.events.*;
+        import mx.rpc.remoting.mxml.*;
+        import mx.styles.*;
+        import mx.validators.*;
+        import mx.events.*;
+
+        private var  _embed_css_imagenes_top_arrow_over_png_1873719080:Class;
+        public var  captchaObj:Captcha;
+        private var  _embed_css_imagenes_button_over_png_1656384858:Class;
+        public var  dateAux:String;
+        private var  _embed_css_imagenes_bottom_arrow_up_png_447407802:Class;
+        private var  _embed_css_imagenes_button_up_png_908471436:Class;
+        public var  sw:int = 0;
+        private var  _embed_css_imagenes_bottom_arrow_over_png_459941744:Class;
+        private var  _embed_css_imagenes_comboBox_over_png_282075296:Class;
+        private var  _embed_css_imagenes_comboBox_disabled_png_716809696:Class;
+        private var  _embed_css_imagenes_RadioButton_upIcon_png_1126432788:Class;
+        public var  popupactivation:popupActivation;
+        private var  _embed_css_imagenes_RadioButton_selectedUpIcon_png_1262948342:Class;
+        private var  _embed_css_imagenes_thumb_up_png_1453920889:Class;
+        private var  _embed_css_imagenes_top_arrow_up_png_1903261430:Class;
+        private var  _embed_css_imagenes_comboBox_up_png_762971866:Class;
+        private var  _embed_css_imagenes_prevMonthOverSkin_png_1203215344:Class;
+        private var  _embed_css_imagenes_nextMonthUpSkin_png_28084422:Class;
+        private var  _embed_css_imagenes_RadioButton_selectedDisabledIcon_png_266913028:Class;
+        private var  _embed_css_imagenes_RadioButton_downIcon_png_1890844650:Class;
+        private var  _embed_css_imagenes_tab_disabled_png_631486292:Class;
+        private var  _embed_css_imagenes_content_bg_png_680141518:Class;
+        private var  _embed_css_imagenes_RadioButton_overIcon_png_1992469514:Class;
+        public var  captchaCode:String;
+        private var  msg:String = "";
+        private var  _embed_css_imagenes_RadioButton_selectedDownIcon_png_1086479888:Class;
+        private var  _embed_css_imagenes_acc_png_533305690:Class;
+        private var  _embed_css_imagenes_tab_selected_png_2107505054:Class;
+        private var  _embed_css_imagenes_acc_selected_png_510021070:Class;
+        private var  _embed_css_imagenes_button_disabled_png_2014808886:Class;
+        private var  alrtTimer:Timer;
+        private var  _embed_css_imagenes_prevMonthUpSkin_png_1162709318:Class;
+        private var  _embed_css_imagenes_RadioButton_selectedOverIcon_png_424631756:Class;
+        private var  alrt:Alert;
+        private var  _embed_css_imagenes_RadioButton_disabledIcon_png_463203830:Class;
+        private var  _embed_css_imagenes_nextMonthOverSkin_png_535750512:Class;
+        private var  _embed_css_imagenes_tab_png_2037830642:Class;
+        private var  _embed_css_imagenes_track_png_1329708558:Class;
+        private var  _embed_css_imagenes_thumb_over_png_1467907965:Class;
+
+
+        public function ___smsSenderProject_Operation1_result(event:ResultEvent) : void
+        {
+            resultSend(event);
+            return;
+        }// end function
+
+        public function _smsSenderProject_DataGridColumn1_c() : DataGridColumn
+        {
+            var _loc_1:* = new DataGridColumn();
+            _loc_1.dataField = "message";
+            _loc_1.width = 220;
+            _loc_1.itemRenderer = _smsSenderProject_ClassFactory1_c();
+            _loc_1.wordWrap = true;
+            _loc_1.setStyle("fontSize", 8);
+            return _loc_1;
+        }// end function
+
+        public function _smsSenderProject_Operation3_c() : Operation
+        {
+            var _loc_1:* = new Operation();
+            _loc_1.name = "countMessages";
+            _loc_1.addEventListener("result", ___smsSenderProject_Operation3_result);
+            return _loc_1;
+        }// end function
+
+        public function checkit() : void
+        {
+            if (captchaCode == checkInput.text)
+            {
+                lblCaptcha.text = "Captcha OK";
+                checkInput.editable = false;
+                btnCaptcha.enabled = false;
+                if (lblMessagesAvailable.text != "0" && lblMessagesBagAvailable.text != "0")
+                {
+                    btnEnviar.enabled = true;
+                }
+                else if (lblMessagesAvailable.text == "0" && lblMessagesBagAvailable.text != "0")
+                {
+                    btnEnviar.enabled = true;
+                }
+                else if (lblMessagesAvailable.text == "0" && lblMessagesBagAvailable.text == "0")
+                {
+                    btnEnviar.enabled = false;
+                }
+                else if (lblMessagesAvailable.text != "0" && lblMessagesBagAvailable.text == "0")
+                {
+                    btnEnviar.enabled = true;
+                }
+            }
+            else
+            {
+                lblCaptcha.text = "El texto debe coincidir con la imagen. Por favor intente otra vez o actualice la imagen. Nota: El texto es case sensitive.";
+            }
+            return;
+        }// end function
+
+        public function ___smsSenderProject_Operation6_result(event:ResultEvent) : void
+        {
+            resultClearMessages(event);
+            return;
+        }// end function
+
+        public function resultCountMessages(event:ResultEvent) : void
+        {
+            var _loc_2:* = event.result as Array;
+            if (sw == 0)
+            {
+                if (_loc_2[0].toString() != "0" && _loc_2[1].toString() != "0")
+                {
+                    lblMessagesAvailable.text = _loc_2[0].toString();
+                    lblMessagesBagAvailable.text = _loc_2[1].toString();
+                    msg = "le quedan " + _loc_2[0].toString() + " mensajes libres";
+                }
+                else if (_loc_2[0].toString() == "0" && _loc_2[1].toString() != "0")
+                {
+                    lblMessagesAvailable.text = "0";
+                    lblMessagesBagAvailable.text = _loc_2[1].toString();
+                    msg = "se acabaron sus mensajes libres, se comenzaron a usar sus mensajes de regalo, le quedan " + _loc_2[1].toString() + " mensajes de regalo";
+                }
+                else if (_loc_2[0].toString() == "0" && _loc_2[1].toString() == "0")
+                {
+                    lblMessagesAvailable.text = "0";
+                    lblMessagesBagAvailable.text = "0";
+                    msg = "se acabaron sus mensajes libres, espere 30 minutos por favor para tener 6 mensajes libres nuevamente.";
+                }
+                else if (_loc_2[0].toString() != "0" && _loc_2[1].toString() == "0")
+                {
+                    lblMessagesAvailable.text = _loc_2[0].toString();
+                    lblMessagesBagAvailable.text = "0";
+                    msg = "le quedan " + _loc_2[0].toString() + " mensajes libres";
+                }
+                sw = 1;
+            }
+            else if (sw == 1)
+            {
+                if (_loc_2[0].toString() != "0" && _loc_2[1].toString() != "0")
+                {
+                    lblMessagesAvailable.text = _loc_2[0].toString();
+                    lblMessagesBagAvailable.text = _loc_2[1].toString();
+                    msg = "mensaje enviado, le quedan " + _loc_2[0].toString() + " mensajes libres";
+                }
+                else if (_loc_2[0].toString() == "0" && _loc_2[1].toString() != "0")
+                {
+                    lblMessagesAvailable.text = "0";
+                    lblMessagesBagAvailable.text = _loc_2[1].toString();
+                    msg = "se acabaron sus mensajes libres, se comenzaron a usar sus mensajes de regalo, le quedan " + _loc_2[1].toString() + " mensajes de regalo";
+                }
+                else if (_loc_2[0].toString() == "0" && _loc_2[1].toString() == "0")
+                {
+                    lblMessagesAvailable.text = "0";
+                    lblMessagesBagAvailable.text = "0";
+                    msg = "se acabaron sus mensajes libres, espere 30 minutos por favor para tener 6 mensajes libres nuevamente.";
+                }
+                else if (_loc_2[0].toString() != "0" && _loc_2[1].toString() == "0")
+                {
+                    lblMessagesAvailable.text = _loc_2[0].toString();
+                    lblMessagesBagAvailable.text = "0";
+                    msg = "mensaje enviado, le quedan " + _loc_2[0].toString() + " mensajes libres";
+                }
+            }
+            alrt = Alert.show(msg, "", Alert.OK, this, alrt_close);
+            alrtTimer.reset();
+            alrtTimer.start();
+            return;
+        }// end function
+
+        public function validateSms(event:MouseEvent) : void
+        {
+            var _loc_4:int = 0;
+            var _loc_5:String = null;
+            var _loc_6:ValidationResultEvent = null;
+            var _loc_7:Array = null;
+            validatorArr = new Array();
+            validatorArr.push(svtaMessage);
+            validatorArr.push(svtiMovil);
+            var _loc_2:* = Validator.validateAll(validatorArr);
+            var _loc_3:* = _loc_2.length == 0;
+            if (_loc_3)
+            {
+                if (lblCaptcha.text == "Captcha OK")
+                {
+                    _loc_4 = int(cbMovil.selectedLabel + tiMovil.text);
+                    _loc_5 = taMessage.text;
+                    roSmsService.send(intUserId, _loc_4, _loc_5);
+                }
+            }
+            else
+            {
+                _loc_7 = [];
+                for each (_loc_6 in _loc_2)
+                {
+                    
+                    _loc_7.push(_loc_6.message);
+                }
+                Alert.show(_loc_7.join("\n\n"), "SMS invalido...", Alert.OK);
+            }
+            return;
+        }// end function
+
+        public function _smsSenderProject_Operation2_c() : Operation
+        {
+            var _loc_1:* = new Operation();
+            _loc_1.name = "getMessages";
+            _loc_1.addEventListener("result", ___smsSenderProject_Operation2_result);
+            return _loc_1;
+        }// end function
+
+        public function resultGetMessages(event:ResultEvent) : void
+        {
+            var _loc_2:int = 0;
+            var _loc_3:Date = null;
+            var _loc_4:String = null;
+            var _loc_5:Object = null;
+            var _loc_6:String = null;
+            var _loc_7:String = null;
+            var _loc_8:String = null;
+            var _loc_9:String = null;
+            var _loc_10:String = null;
+            var _loc_11:String = null;
+            acGraffiti = new ArrayCollection();
+            acMessages = event.result as ArrayCollection;
+            if (acMessages.length >= 1)
+            {
+                _loc_2 = 0;
+                while (_loc_2 < acMessages.length)
+                {
+                    
+                    _loc_3 = acMessages[_loc_2].dateTimeInsert;
+                    if (_loc_3.getMonth().toString().length == 1)
+                    {
+                        _loc_6 = "0" + _loc_3.getMonth().toString();
+                    }
+                    else
+                    {
+                        _loc_6 = _loc_3.getMonth().toString();
+                    }
+                    if (_loc_3.getDate().toString().length == 1)
+                    {
+                        _loc_7 = "0" + _loc_3.getDate().toString();
+                    }
+                    else
+                    {
+                        _loc_7 = _loc_3.getDate().toString();
+                    }
+                    if (_loc_3.getHours().toString().length == 1)
+                    {
+                        _loc_8 = "0" + _loc_3.getHours().toString();
+                    }
+                    else
+                    {
+                        _loc_8 = _loc_3.getHours().toString();
+                    }
+                    if (_loc_3.getMinutes().toString().length == 1)
+                    {
+                        _loc_9 = "0" + _loc_3.getMinutes().toString();
+                    }
+                    else
+                    {
+                        _loc_9 = _loc_3.getMinutes().toString();
+                    }
+                    _loc_4 = _loc_7 + "/" + _loc_6 + "/" + _loc_3.getFullYear().toString() + ", " + _loc_8 + ":" + _loc_9;
+                    if (acMessages[_loc_2].status == "SEND")
+                    {
+                        _loc_10 = "<b><FONT color=\'#014F97\' size=\'9\'>[Yo -> " + acMessages[_loc_2].destinationNumber + "]</FONT> " + "<FONT color=\'#014F97\' size=\'8\'>(" + _loc_4 + "):</FONT></b> \n" + "<FONT  color=\'#014F97\' size=\'11\'>" + acMessages[_loc_2].message + "</FONT>";
+                        _loc_11 = "[Yo] " + "(" + _loc_4 + "): " + acMessages[_loc_2].message;
+                    }
+                    else if (acMessages[_loc_2].status == "NEWCOMER")
+                    {
+                        _loc_10 = "<b><FONT color=\'#014F97\' size=\'9\'>[" + acMessages[_loc_2].origenNumber + "]</FONT> " + "<FONT color=\'#014F97\' size=\'8\'>(" + _loc_4 + "):</FONT></b> \n" + "<FONT  color=\'#014F97\' size=\'11\'>" + acMessages[_loc_2].message + "</FONT>";
+                        _loc_11 = "[" + acMessages[_loc_2].origenNumber + "] " + "(" + _loc_4 + "): " + acMessages[_loc_2].message;
+                    }
+                    _loc_5 = new Object();
+                    _loc_5.messageWH = _loc_11;
+                    _loc_5.message = _loc_10;
+                    acGraffiti.addItem(_loc_5);
+                    _loc_2++;
+                }
+                dgMessages.dataProvider = acGraffiti;
+            }
+            else
+            {
+                dgMessages.dataProvider = null;
+            }
+            return;
+        }// end function
+
+        public function _smsSenderProject_ClassFactory1_c() : ClassFactory
+        {
+            var _loc_1:* = new ClassFactory();
+            _loc_1.generator = TextOrHTMLRenderer;
+            return _loc_1;
+        }// end function
+
+        public function remakeCaptcha() : void
+        {
+            checkInput.text = "";
+            lblCaptcha.text = "";
+            removeChild(captchaObj);
+            captchaObj = null;
+            captchaGeneration();
+            return;
+        }// end function
+
+        public function ___smsSenderProject_Operation4_result(event:ResultEvent) : void
+        {
+            resultSelectRanges(event);
+            return;
+        }// end function
+
+        public function _smsSenderProject_Operation1_c() : Operation
+        {
+            var _loc_1:* = new Operation();
+            _loc_1.name = "send";
+            _loc_1.addEventListener("result", ___smsSenderProject_Operation1_result);
+            return _loc_1;
+        }// end function
+
+        public function enabledUser(event:Event) : void
+        {
+            if (popupactivation.strStatusUser == "unactivated")
+            {
+                btnActivation.visible = true;
+            }
+            else if (popupactivation.strStatusUser == "waiting")
+            {
+                btnActivation.visible = true;
+            }
+            else if (popupactivation.strStatusUser == "enabled")
+            {
+                btnActivation.visible = false;
+            }
+            return;
+        }// end function
+
+        public function ___smsSenderProject_Operation2_result(event:ResultEvent) : void
+        {
+            resultGetMessages(event);
+            return;
+        }// end function
+
+        public function _smsSenderProject_RemoteObject1_i() : RemoteObject
+        {
+            var _loc_1:* = new RemoteObject();
+            roSmsService = _loc_1;
+            _loc_1.destination = "dSms";
+            _loc_1.source = "service.smsService";
+            _loc_1.showBusyCursor = true;
+            _loc_1.operations = {send:_smsSenderProject_Operation1_c(), getMessages:_smsSenderProject_Operation2_c(), countMessages:_smsSenderProject_Operation3_c(), selectRanges:_smsSenderProject_Operation4_c(), isEnabled:_smsSenderProject_Operation5_c(), clearMessages:_smsSenderProject_Operation6_c()};
+            _loc_1.addEventListener("fault", __roSmsService_fault);
+            _loc_1.initialized(this, "roSmsService");
+            return _loc_1;
+        }// end function
+
+        public function alrt_close(event:CloseEvent) : void
+        {
+            alrtTimer.stop();
+            return;
+        }// end function
+
+        public function faultListener(event:FaultEvent) : void
+        {
+            Alert.show(event.fault.message, "Error");
+            return;
+        }// end function
+
+        public function init() : void
+        {
+            var _loc_1:* = new Timer(10000);
+            _loc_1.addEventListener(TimerEvent.TIMER, selectGraffiti);
+            _loc_1.start();
+            captchaGeneration();
+            popupactivation = new popupActivation();
+            popupactivation.addEventListener("EnabledUser", enabledUser);
+            roSmsService.isEnabled(intUserId);
+            alrtTimer = new Timer(5000, 1);
+            alrtTimer.addEventListener(TimerEvent.TIMER_COMPLETE, removeAlert);
+            return;
+        }// end function
+
+        public function resultIsEnabled(event:ResultEvent) : void
+        {
+            if (event.result.toString() == "UNACTIVATED" || event.result.toString() == "WAITING")
+            {
+                popupactivation.count = 3;
+                PopUpManager.addPopUp(popupactivation, this, true);
+                PopUpManager.centerPopUp(popupactivation);
+                btnActivation.visible = true;
+            }
+            else if (event.result.toString() == "ENABLED")
+            {
+                btnActivation.visible = false;
+            }
+            return;
+        }// end function
+
+        public function actualizarCaracteres() : void
+        {
+            var _loc_1:int = 0;
+            var _loc_2:* = taMessage.text;
+            _loc_1 = 124 - _loc_2.length;
+            tiCL.text = _loc_1.toString();
+            return;
+        }// end function
+
+        public function captchaGeneration() : void
+        {
+            if (captchaObj && this.getChildIndex(captchaObj))
+            {
+                this.removeChild(captchaObj);
+            }
+            captchaObj = new Captcha("alphaCharsnum", 6, 100, 30);
+            captchaCode = captchaObj.securitycode;
+            captchaObj.setStyle("horizontalCenter", -50);
+            captchaObj.setStyle("verticalCenter", -68);
+            this.addChild(captchaObj);
+            return;
+        }// end function
+
+        public function removeAlert(event:TimerEvent) : void
+        {
+            PopUpManager.removePopUp(alrt);
+            return;
+        }// end function
+
+        public function resultSend(event:ResultEvent) : void
+        {
+            roSmsService.countMessages(intUserId);
+            resetSms();
+            btnEnviar.enabled = false;
+            btnCaptcha.enabled = true;
+            return;
+        }// end function
+
+        public function createToolTip(event:ListEvent) : void
+        {
+            var _loc_2:* = DataGridItemRenderer(event.itemRenderer).data.messageWH;
+            dgMessages.toolTip = _loc_2;
+            return;
+        }// end function
+
+        public function _smsSenderProject_Operation6_c() : Operation
+        {
+            var _loc_1:* = new Operation();
+            _loc_1.name = "clearMessages";
+            _loc_1.addEventListener("result", ___smsSenderProject_Operation6_result);
+            return _loc_1;
+        }// end function
+
+        public function ___smsSenderProject_Operation5_result(event:ResultEvent) : void
+        {
+            resultIsEnabled(event);
+            return;
+        }// end function
+
+        public function __roSmsService_fault(event:FaultEvent) : void
+        {
+            Alert.show(event.fault.faultString, "Error");
+            return;
+        }// end function
+
+        public function resetSms() : void
+        {
+            tiMovil.text = "";
+            tiCL.text = "124";
+            taMessage.text = "";
+            checkInput.text = "";
+            checkInput.editable = true;
+            lblCaptcha.text = "";
+            remakeCaptcha();
+            return;
+        }// end function
+
+        public function resultClearMessages(event:ResultEvent) : void
+        {
+            return;
+        }// end function
+
+        public function _smsSenderProject_Operation5_c() : Operation
+        {
+            var _loc_1:* = new Operation();
+            _loc_1.name = "isEnabled";
+            _loc_1.addEventListener("result", ___smsSenderProject_Operation5_result);
+            return _loc_1;
+        }// end function
+
+        public function resultSelectRanges(event:ResultEvent) : void
+        {
+            acRanges = event.result as ArrayCollection;
+            cbMovil.labelField = "ranges";
+            cbMovil.dataProvider = acRanges;
+            return;
+        }// end function
+
+        public function insertEmoticon1() : void
+        {
+            if (int(taMessage.text.length) < 123 && int(taMessage.text.length) >= 0)
+            {
+                taMessage.text = taMessage.text + ":)";
+                actualizarCaracteres();
+            }
+            return;
+        }// end function
+
+        public function insertEmoticon2() : void
+        {
+            if (int(taMessage.text.length) < 123 && int(taMessage.text.length) >= 0)
+            {
+                taMessage.text = taMessage.text + ":(";
+                actualizarCaracteres();
+            }
+            return;
+        }// end function
+
+        public function insertEmoticon3() : void
+        {
+            if (int(taMessage.text.length) < 123 && int(taMessage.text.length) >= 0)
+            {
+                taMessage.text = taMessage.text + ":P";
+                actualizarCaracteres();
+            }
+            return;
+        }// end function
+
+        public function insertEmoticon4() : void
+        {
+            if (int(taMessage.text.length) < 123 && int(taMessage.text.length) >= 0)
+            {
+                taMessage.text = taMessage.text + ":O";
+                actualizarCaracteres();
+            }
+            return;
+        }// end function
+
+        public function insertEmoticon5() : void
+        {
+            if (int(taMessage.text.length) < 123 && int(taMessage.text.length) >= 0)
+            {
+                taMessage.text = taMessage.text + ":O";
+                actualizarCaracteres();
+            }
+            return;
+        }// end function
+
+        public function insertEmoticon6() : void
+        {
+            if (int(taMessage.text.length) < 123 && int(taMessage.text.length) >= 0)
+            {
+                taMessage.text = taMessage.text + ":x";
+                actualizarCaracteres();
+            }
+            return;
+        }// end function
+
+        public function deleteToolTip(_smsSenderProject_StylesInit_done:Object) : void
+        {
+            dgMessages.toolTip = null;
+            return;
+        }// end function
+
+        public function insertEmoticon8() : void
+        {
+            if (int(taMessage.text.length) < 123 && int(taMessage.text.length) >= 0)
+            {
+                taMessage.text = taMessage.text + ";)";
+                actualizarCaracteres();
+            }
+            return;
+        }// end function
+
+        public function ___smsSenderProject_Operation3_result(event:ResultEvent) : void
+        {
+            resultCountMessages(event);
+            return;
+        }// end function
+
+        public function insertEmoticon7() : void
+        {
+            if (int(taMessage.text.length) < 123 && int(taMessage.text.length) >= 0)
+            {
+                taMessage.text = taMessage.text + ":@";
+                actualizarCaracteres();
+            }
+            return;
+        }// end function
+
+        public function _smsSenderProject_DataGridColumn2_c() : DataGridColumn
+        {
+            var _loc_1:* = new DataGridColumn();
+            _loc_1.dataField = "messageWH";
+            _loc_1.width = 220;
+            _loc_1.visible = false;
+            _loc_1.setStyle("fontSize", 8);
+            return _loc_1;
+        }// end function
+
+        public function selectGraffiti(event:TimerEvent) : void
+        {
+            roSmsService.getMessages(intUserId);
+            return;
+        }// end function
+
+        public function _smsSenderProject_Operation4_c() : Operation
+        {
+            var _loc_1:* = new Operation();
+            _loc_1.name = "selectRanges";
+            _loc_1.addEventListener("result", ___smsSenderProject_Operation4_result);
+            return _loc_1;
+        }// end function
+    ]]></mx:Script>
+
+	<mx:StringValidator id="_smsSenderProject_StringValidator2" maxLength="124" minLength="0" property="text" requiredFieldError="Mensaje: Información requerida"/>
+	<mx:StringValidator id="_smsSenderProject_StringValidator1" maxLength="5" minLength="5" property="text" requiredFieldError="Móvil: Información requerida" tooShortError="Móvil: Mínimo 5 dígitos"/>
+	<mx:Canvas backgroundAlpha="100" height="100%" id="cSMS" width="232">
+		<mx:SWFLoader bottom="0" left="0" source="assets/fondo_sms.swf" top="0"/>
+		<mx:LinkButton click="{roSmsService.isEnabled(intUserId);}" color="#00fbad31" fontSize="9" fontWeight="bold" height="17" id="btnActivation" label="Activa tu movil" textDecoration="underline" visible="true" width="96.15" x="106" y="8"/>
+		<mx:LinkButton click="{navigateToURL(new URLRequest('http://sms.entel.bo:8080/web/entel/smshelp'), 'quote');}" color="#00fbad31" disabledSkin="_embed_mxml_assets_pregunta_png_282118581" downSkin="_embed_mxml_assets_pregunta_png_282118581" fontSize="9" fontWeight="bold" height="30" id="btnHelp" overSkin="_embed_mxml_assets_pregunta_png_282118581" upSkin="{smsSenderProject__embed_mxml_assets_pregunta_png_282118581}" width="30" x="200" y="0"/>
+		<mx:FormItem color="#00e8d63b" fontWeight="normal" height="21.5" width="86.5" x="28.5" y="23.3">
+			<mx:ComboBox fontSize="8" height="24" id="cbMovil" width="67"/>
+		</mx:FormItem>
+		<mx:FormItem errorString="" height="25" required="false" width="62.5" x="99.5" y="20.8">
+			<mx:TextInput alpha="0" dropShadowEnabled="false" errorColor="16777215" focusAlpha="0" height="36.5" id="tiMovil" maxChars="5" restrict="0-9" width="68"/>
+		</mx:FormItem>
+		<mx:HBox height="19.8667" width="220.55" x="4.7" y="184.1">
+			<mx:Button alpha="0" click="{insertEmoticon1();}" height="20" label=":)" width="20" x="4.7" y="182.05"/>
+			<mx:Button alpha="0" click="{insertEmoticon2();}" height="20" label=":(" width="20" x="34" y="182.05"/>
+			<mx:Button alpha="0" click="{insertEmoticon3();}" height="20" label=":P" width="20"/>
+			<mx:Button alpha="0" click="{insertEmoticon4();}" height="20" label=":D" width="20" x="4.7"/>
+			<mx:Button alpha="0" click="{insertEmoticon5();}" height="20" label=":O" width="18"/>
+			<mx:Button alpha="0" click="{insertEmoticon6();}" height="20" label=":x" width="20" x="4.7"/>
+			<mx:Button alpha="0" click="{insertEmoticon7();}" height="20" label=":@" width="20" x="4.7"/>
+			<mx:Button alpha="0" click="{insertEmoticon8();}" height="20" label=":S" labelPlacement="left" width="20"/>
+		</mx:HBox>
+		<mx:FormItem backgroundAlpha="0" color="#00e8d63b" fontWeight="normal" x="178.5" y="49.35">
+			<mx:TextInput alpha="0" backgroundAlpha="0" color="#00014f97" editable="false" id="tiCL" maxChars="2" text="124"/>
+		</mx:FormItem>
+		<mx:FormItem height="89" required="false" width="222" x="0" y="77.35">
+			<mx:TextArea alpha="0" change="{actualizarCaracteres();}" dropShadowEnabled="false" errorColor="16777215" focusAlpha="0" height="75" id="taMessage" maxChars="124" restrict="^àèìòùÁÉÍÓÚÀÌÈÒÙ\\\\-\\\'\\/#$%()=?¡¿\'\\\\\"\\&amp;|°!\\&lt;&gt;;_\\^¨*+{}[]\\`~" width="208"/>
+		</mx:FormItem>
+		<mx:TextInput alpha="0" backgroundAlpha="0" change="{checkit();}" dropShadowEnabled="false" errorColor="16777215" focusAlpha="0" fontSize="11" fontWeight="normal" height="30.65" id="checkInput" maxChars="8" width="83.5" x="136" y="251.35"/>
+		<mx:Button click="{remakeCaptcha();}" fontSize="10" height="20" id="btnCaptcha" label="otro texto" width="83.5" x="133" y="222.35"/>
+		<mx:Label height="35.5" id="lblCaptcha" visible="false" width="107" x="10" y="214.35"/>
+		<mx:Label alpha="1" id="lblMessagesAvailable" x="78.5" y="319"/>
+		<mx:Label alpha="1" color="#00ffffff" id="lblMessagesBagAvailable" x="197.35" y="321"/>
+		<mx:Button click="{resetSms();}" fontSize="10" fontWeight="bold" height="22" label="limpiar" width="80.5" x="10" y="292"/>
+		<mx:Button click="{validateSms(event);}" enabled="false" fontSize="10" height="22" id="btnEnviar" label="Enviar" width="80" x="110.85" y="292"/>
+		<mx:DataGrid alternatingItemColors="[14409957, 15986671]" borderColor="13093580" columns="{[_smsSenderProject_DataGridColumn1_c(), _smsSenderProject_DataGridColumn2_c()]}" height="209.4" id="dgMessages" showHeaders="false" variableRowHeight="true" verticalScrollPolicy="auto" width="220.24" x="5" y="361.6"/>
+		<mx:Button click="{roSmsService.clearMessages(intUserId);}" fontSize="10" height="20" label="borrar conversaciones" width="155.7" x="38.15" y="572.8"/>
+	</mx:Canvas>
+
+	<mx:Style>
+        DataGrid
+        {
+            alternatingItemColors : 2828842, 2828842;
+            rollOverColor : 6857953;
+            useRollOver : true;
+            borderThickness : 0;
+            verticalGridLines : false;
+            selectionColor : 6857953;
+        }
+    
+        .accordionHeader
+        {
+            upSkin : ClassReference("smsSenderProject__embed_css_imagenes_acc_png_533305690");
+            overSkin : ClassReference("smsSenderProject__embed_css_imagenes_acc_selected_png_510021070");
+            downSkin : ClassReference("smsSenderProject__embed_css_imagenes_acc_selected_png_510021070");
+            paddingTop : 3;
+            selectedUpSkin : ClassReference("smsSenderProject__embed_css_imagenes_acc_selected_png_510021070");
+            fontSize : 10;
+            fillColors : 13736520, 13728769;
+            paddingBottom : 1;
+            paddingLeft : 10;
+            paddingRight : 10;
+            selectedOverSkin : ClassReference("smsSenderProject__embed_css_imagenes_acc_selected_png_510021070");
+        }
+    
+        Accordion
+        {
+            borderColor : 2236446;
+            color : 16711422;
+            backgroundColor : 0;
+            headerStyleName : accordionHeader;
+            fontSize : 10;
+            backgroundAlpha : 0.4;
+        }
+    
+        ViewStack
+        {
+            paddingTop : 1;
+            borderSkin : ClassReference("smsSenderProject__embed_css_imagenes_content_bg_png_680141518");
+            paddingBottom : 1;
+            paddingRight : 1;
+        }
+    
+        TextArea
+        {
+            paddingTop : 2;
+            backgroundColor : 16777215;
+            color : 85911;
+            fontSize : 11;
+            paddingLeft : 2;
+        }
+    
+        Button
+        {
+            upSkin : ClassReference("smsSenderProject__embed_css_imagenes_button_up_png_908471436");
+            overSkin : ClassReference("smsSenderProject__embed_css_imagenes_button_over_png_1656384858");
+            downSkin : ClassReference("smsSenderProject__embed_css_imagenes_button_up_png_908471436");
+            color : 4473924;
+            fontSize : 11;
+            disabledSkin : ClassReference("smsSenderProject__embed_css_imagenes_button_disabled_png_2014808886");
+        }
+    
+        Panel
+        {
+            borderStyle : solid;
+            backgroundColor : 4079166;
+            cornerRadius : 10;
+            headerHeight : 20;
+            borderAlpha : 0;
+            borderThicknessTop : 0;
+            backgroundAlpha : 0.47;
+            titleStyleName : mypanelTitle;
+            shadowDirection : center;
+            borderThicknessBottom : 2;
+            borderThicknessRight : 10;
+            roundedBottomCorners : true;
+            highlightAlphas : 0.5, 0;
+            borderThicknessLeft : 0;
+        }
+    
+        ComboBox
+        {
+            upSkin : ClassReference("smsSenderProject__embed_css_imagenes_comboBox_up_png_762971866");
+            overSkin : ClassReference("smsSenderProject__embed_css_imagenes_comboBox_over_png_282075296");
+            downSkin : ClassReference("smsSenderProject__embed_css_imagenes_comboBox_up_png_762971866");
+            dropdownStyleName : dropdownStyleName;
+            color : 4473924;
+            disabledSkin : ClassReference("smsSenderProject__embed_css_imagenes_comboBox_disabled_png_716809696");
+            paddingLeft : 10;
+        }
+    
+        Form
+        {
+            borderStyle : none;
+            backgroundColor : 4079166;
+            cornerRadius : 10;
+            headerHeight : 20;
+            borderAlpha : 0;
+            borderThicknessTop : 0;
+            backgroundAlpha : 0;
+            shadowDirection : center;
+            borderThicknessBottom : 2;
+            borderThicknessRight : 10;
+            roundedBottomCorners : true;
+            color : 16777215;
+            highlightAlphas : 0.5, 0;
+            borderThicknessLeft : 0;
+        }
+    
+        DateField
+        {
+            color : 16711679;
+            dateChooserStyleName : dateChooserStyleName;
+        }
+    
+        VBox
+        {
+            paddingTop : 10;
+            paddingBottom : 10;
+            paddingLeft : 10;
+            paddingRight : 10;
+        }
+    
+        TabNavigator
+        {
+            borderStyle : none;
+            borderColor : 2236446;
+            color : 16711422;
+            backgroundColor : 0;
+            cornerRadius : 0;
+            tabHeight : 30;
+            horizontalAlign : left;
+            fontSize : 10;
+            textIndent : 0;
+            horizontalGap : 0;
+            backgroundAlpha : 0.4;
+            tabOffset : 0;
+        }
+    
+        .dateChooserHeader
+        {
+            fontWeight : normal;
+        }
+    
+        AdvancedDataGrid
+        {
+            paddingTop : 10;
+            paddingBottom : 10;
+            paddingLeft : 10;
+            paddingRight : 10;
+        }
+    
+        RadioButton
+        {
+            disabledIcon : ClassReference("smsSenderProject__embed_css_imagenes_RadioButton_selectedDisabledIcon_png_266913028");
+            color : 16777215;
+            selectedOverIcon : ClassReference("smsSenderProject__embed_css_imagenes_RadioButton_selectedDownIcon_png_1086479888");
+            selectedUpIcon : ClassReference("smsSenderProject__embed_css_imagenes_RadioButton_selectedUpIcon_png_1262948342");
+            upIcon : ClassReference("smsSenderProject__embed_css_imagenes_RadioButton_upIcon_png_1126432788");
+            selectedDisabledIcon : ClassReference("smsSenderProject__embed_css_imagenes_RadioButton_disabledIcon_png_463203830");
+            selectedDownIcon : ClassReference("smsSenderProject__embed_css_imagenes_RadioButton_selectedOverIcon_png_424631756");
+            textRollOverColor : 14540253;
+            overIcon : ClassReference("smsSenderProject__embed_css_imagenes_RadioButton_overIcon_png_1992469514");
+            textSelectedColor : 11184810;
+            downIcon : ClassReference("smsSenderProject__embed_css_imagenes_RadioButton_downIcon_png_1890844650");
+        }
+    
+        ToggleButtonBar
+        {
+            backgroundColor : 4079166;
+            tabStyleName : tabStyle;
+        }
+    
+        .dateChooserStyleName
+        {
+            borderColor : 7893872;
+            backgroundColor : 2828842;
+            rollOverColor : 15053857;
+            headerStyleName : dateChooserHeader;
+            nextMonthDownSkin : ClassReference("smsSenderProject__embed_css_imagenes_nextMonthUpSkin_png_28084422");
+            cornerRadius : 8;
+            selectionColor : 16751616;
+            nextMonthUpSkin : ClassReference("smsSenderProject__embed_css_imagenes_nextMonthUpSkin_png_28084422");
+            prevMonthDownSkin : ClassReference("smsSenderProject__embed_css_imagenes_prevMonthUpSkin_png_1162709318");
+            dropShadowEnabled : true;
+            color : 16777215;
+            prevMonthUpSkin : ClassReference("smsSenderProject__embed_css_imagenes_prevMonthUpSkin_png_1162709318");
+            nextMonthOverSkin : ClassReference("smsSenderProject__embed_css_imagenes_nextMonthOverSkin_png_535750512");
+            headerColors : 4473149, 2960168;
+            prevMonthOverSkin : ClassReference("smsSenderProject__embed_css_imagenes_prevMonthOverSkin_png_1203215344");
+        }
+    
+        FormItem
+        {
+            borderStyle : none;
+            backgroundColor : 4079166;
+            cornerRadius : 10;
+            headerHeight : 20;
+            borderAlpha : 0;
+            borderThicknessTop : 0;
+            backgroundAlpha : 0;
+            shadowDirection : center;
+            borderThicknessBottom : 2;
+            borderThicknessRight : 10;
+            roundedBottomCorners : true;
+            color : 16777215;
+            highlightAlphas : 0.5, 0;
+            borderThicknessLeft : 0;
+        }
+    
+        DateChooser
+        {
+            borderColor : 7893872;
+            backgroundColor : 2828842;
+            rollOverColor : 15053857;
+            headerStyleName : dateChooserHeader;
+            nextMonthDownSkin : ClassReference("smsSenderProject__embed_css_imagenes_nextMonthUpSkin_png_28084422");
+            cornerRadius : 8;
+            selectionColor : 16751616;
+            nextMonthUpSkin : ClassReference("smsSenderProject__embed_css_imagenes_nextMonthUpSkin_png_28084422");
+            prevMonthDownSkin : ClassReference("smsSenderProject__embed_css_imagenes_prevMonthUpSkin_png_1162709318");
+            dropShadowEnabled : true;
+            color : 16777215;
+            prevMonthUpSkin : ClassReference("smsSenderProject__embed_css_imagenes_prevMonthUpSkin_png_1162709318");
+            nextMonthOverSkin : ClassReference("smsSenderProject__embed_css_imagenes_nextMonthOverSkin_png_535750512");
+            headerColors : 4473149, 2960168;
+            prevMonthOverSkin : ClassReference("smsSenderProject__embed_css_imagenes_prevMonthOverSkin_png_1203215344");
+        }
+    
+        TabBar
+        {
+            backgroundColor : 4079166;
+            tabStyleName : tabStyle;
+        }
+    
+        .mypanelTitle
+        {
+            fontWeight : bold;
+            color : 16777215;
+            backgroundImage : imagenes/application_bg.png;
+            textAlign : center;
+            fontFamily : Verdana;
+            fontSize : 12;
+        }
+    
+        Alert
+        {
+            paddingBottom : 10;
+            backgroundAlpha : 1;
+        }
+    
+        TextInput
+        {
+            paddingTop : 2;
+            backgroundColor : 16777215;
+            color : 85911;
+            fontSize : 11;
+            paddingLeft : 2;
+        }
+    
+        Application
+        {
+            color : 16777215;
+        }
+    
+        Canvas
+        {
+            borderColor : 2236446;
+            color : 16711422;
+            backgroundColor : 0;
+            headerStyleName : accordionHeader;
+            fontSize : 10;
+            backgroundAlpha : 0.4;
+        }
+    
+        ScrollBar
+        {
+            downArrowUpSkin : ClassReference("smsSenderProject__embed_css_imagenes_bottom_arrow_up_png_447407802");
+            upArrowUpSkin : ClassReference("smsSenderProject__embed_css_imagenes_top_arrow_up_png_1903261430");
+            thumbDownSkin : ClassReference("smsSenderProject__embed_css_imagenes_thumb_over_png_1467907965");
+            upArrowOverSkin : ClassReference("smsSenderProject__embed_css_imagenes_top_arrow_over_png_1873719080");
+            thumbOverSkin : ClassReference("smsSenderProject__embed_css_imagenes_thumb_over_png_1467907965");
+            trackSkin : ClassReference("smsSenderProject__embed_css_imagenes_track_png_1329708558");
+            downArrowDownSkin : ClassReference("smsSenderProject__embed_css_imagenes_bottom_arrow_over_png_459941744");
+            upArrowDownSkin : ClassReference("smsSenderProject__embed_css_imagenes_top_arrow_over_png_1873719080");
+            thumbUpSkin : ClassReference("smsSenderProject__embed_css_imagenes_thumb_up_png_1453920889");
+            downArrowOverSkin : ClassReference("smsSenderProject__embed_css_imagenes_bottom_arrow_over_png_459941744");
+        }
+    
+        .tabStyle
+        {
+            upSkin : ClassReference("smsSenderProject__embed_css_imagenes_tab_png_2037830642");
+            overSkin : ClassReference("smsSenderProject__embed_css_imagenes_tab_selected_png_2107505054");
+            downSkin : ClassReference("smsSenderProject__embed_css_imagenes_tab_selected_png_2107505054");
+            color : 4473924;
+            selectedUpSkin : ClassReference("smsSenderProject__embed_css_imagenes_tab_selected_png_2107505054");
+            fontSize : 11;
+            disabledSkin : ClassReference("smsSenderProject__embed_css_imagenes_tab_disabled_png_631486292");
+            selectedOverSkin : ClassReference("smsSenderProject__embed_css_imagenes_tab_selected_png_2107505054");
+        }
+    </mx:Style>
+</mx:Application>
